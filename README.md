@@ -11,12 +11,12 @@ for ```azuracast_cli``` to include the plugin.
 
 dry-run, prints what will be done:
 ```
-azuracast_cli utils:import-media mymedia4
+azuracast_cli utils:import-media ./mymedia4
 ```
 
 proceed with the import and underlying station and playlist creations:
 ```
-azuracast_cli utils:import-media mymedia4 --proceed 
+azuracast_cli utils:import-media ./mymedia4 --proceed 
 ```
 
 
