@@ -12,10 +12,14 @@ for azuracast_cli to include the plugin.
 ## usage
 
 dry-run, prints what will be done:
-```azuracast_cli utils:import-media mymedia4```
+```
+azuracast_cli utils:import-media mymedia4
+```
 
 proceed with the import and underlying station and playlist creations:
-```azuracast_cli utils:import-media --proceed mymedia4```
+```
+azuracast_cli utils:import-media --proceed mymedia4
+```
 
 
 This plugin expects that the music files are organized under a simple directory tree:
