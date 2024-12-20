@@ -64,7 +64,7 @@ Empty stations (a station which does not include at least 1 playlist containing 
 <br /><br />
 
 
-utils-plugin also exposes a create-station task which creates a new station and starts it:
+utils-plugin also exposes a create-station task which creates a new station with a "default" playlist and starts it:
 ```
 azuracast_cli utils:create-station mynewstation
 ```
