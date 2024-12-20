@@ -83,4 +83,4 @@ Plugins are a good way to add funcionality to azuracast without modifying the ma
 It becomes easy to add an azuracast_cli command which this plugin does.
 More information on plugins is available via
 the [AzuraCast Documentation](https://www.azuracast.com/docs/developers/plugins/).
-This plugin with built using the (example-plugin)(https://github.com/AzuraCast/example-plugin) as a base.
+This plugin was built using the [example-plugin](https://github.com/AzuraCast/example-plugin) as a base.
