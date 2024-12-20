@@ -18,7 +18,7 @@ azuracast_cli utils:import-media mymedia4
 
 proceed with the import and underlying station and playlist creations:
 ```
-azuracast_cli utils:import-media --proceed mymedia4
+azuracast_cli utils:import-media mymedia4 --proceed 
 ```
 
 
