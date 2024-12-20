@@ -54,7 +54,7 @@ Example for teststation5:
     └── Paranoimia.sid
 ```
 
-Each playlist directory (ex /var/azuracast/stations/teststation5/media/myplaylist) will be added to the new/existing azuracast playlist with StationPlaylistFolderRepository->addPlaylistsToFolder which means that any content that you might manually add later on to this folder 
+Each playlist directory (ex ```/var/azuracast/stations/teststation5/media/myplaylist```) will be added to the new/existing azuracast playlist with ```StationPlaylistFolderRepository->addPlaylistsToFolder``` which means that any content that you might manually add later on to this folder 
 using the azuracast web UI will automatically be part of the underlying azuracast playlist (a folder can be attached to several playlists so there might actually
 be several underlying azuracast playlists).
 
