@@ -1,5 +1,3 @@
-# goal of utils-plugin
-
 During development with azuracast or when deploying a new station with lots of content it becomes boring to recreate stations, playlists and upload media
 manually. This plugin will create stations, playlists and import media using a one-shot process with the azuracast_cli command.
 
