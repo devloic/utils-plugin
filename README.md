@@ -5,21 +5,22 @@ manually. This plugin will create stations, playlists and import media using a o
 
 ## installing utils-plugin
 
-Follow documentation of the [example-plugin](https://github.com/AzuraCast/example-plugin).
+Follow documentation of the (example-plugin)(https://github.com/AzuraCast/example-plugin).
 You might need to run "composer install" inside /var/azuracast/www and inside /var/azuracast/www/plugins/utils-plugin for azuracast_cli to work and 
 for azuracast_cli to include the plugin.
 
 ## usage
 
 dry-run, prints what will be done:
-azuracast_cli utils:import-media mymedia4
+```azuracast_cli utils:import-media mymedia4```
 
 proceed with the import and underlying station and playlist creations:
-azuracast_cli utils:import-media --proceed mymedia4 
+```azuracast_cli utils:import-media --proceed mymedia4```
 
 
 This plugin expects that the music files are organized under a simple directory tree:
 
+```
 mymedia4
 ├── station1
 │   ├── myexistingplaylist
@@ -33,7 +34,7 @@ mymedia4
     └── myplaylist2
         ├── enigma.mod
         └── Paranoimia.sid
-
+```
 
 The import-media task will check for existing stations and related playlists. The "station" directories inside "mymedia4" refer to the stations "shortname" which are unique identifiers so if you want to add content to and existing station be sure to refer to their shortname. Same naming logic applies to playlists inside stations.
 
@@ -41,6 +42,7 @@ The station's content will be copied under the stations media folder using azura
 
 Example for teststation5:
 
+```
 /var/azuracast/stations/teststation5/media/
 ├── myplaylist
 │   ├── skid_row27_2.cus
@@ -48,6 +50,7 @@ Example for teststation5:
 └── myplaylist2
     ├── enigma.mod
     └── Paranoimia.sid
+```
 
 Each playlist directory (ex /var/azuracast/stations/teststation5/media/myplaylist) will be added to the new/existing azuracast playlist with StationPlaylistFolderRepository->addPlaylistsToFolder which means that any content that you might manually add later on to this folder 
 using the azuracast web UI will automatically be part of the underlying azuracast playlist (a folder can be attached to several playlists so there might actually
