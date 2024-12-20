@@ -38,7 +38,7 @@ mymedia4
         └── Paranoimia.sid
 ```
 
-The import-media task will check for existing stations and related playlists. The "station" directories inside "mymedia4" refer to the stations "shortname" which are unique identifiers so if you want to add content to and existing station be sure to refer to their shortname. Same naming logic applies to playlists inside stations.
+The import-media task will check for existing stations and related playlists. The "station" directories inside "mymedia4" refer to the station's "shortname" which are unique identifiers so if you want to add content to and existing station be sure to refer to their shortname when naming your station directory. Same naming logic applies to playlists inside stations.
 
 The station's content will be copied under the stations media folder using azuracast internal functions.
 
