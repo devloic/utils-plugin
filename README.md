@@ -6,7 +6,7 @@ manually. This plugin will create stations, playlists and import media using a o
 ## installing utils-plugin
 
 Follow documentation of the [example-plugin](https://github.com/AzuraCast/example-plugin).
-You might need to run "composer install" inside the /var/azuracast/www and inside /var/azuracast/www/plugins/utils-plugin for azuracast_cli to work and 
+You might need to run "composer install" inside /var/azuracast/www and inside /var/azuracast/www/plugins/utils-plugin for azuracast_cli to work and 
 for azuracast_cli to include the plugin.
 
 ## usage
