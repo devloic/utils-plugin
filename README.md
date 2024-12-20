@@ -1,4 +1,4 @@
-During development with azuracast or when deploying a new station with lots of content it becomes boring to recreate stations, playlists and upload media
+During development with azuracast or when deploying a new station with lots of content it becomes tedious to recreate stations, playlists and upload media
 manually. This plugin will create stations, playlists and import media using a one-shot process with the azuracast_cli command.
 
 ## installing utils-plugin
