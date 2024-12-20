@@ -72,7 +72,7 @@ proceed with the station creation and start it:
 ```
 azuracast_cli utils:create-station mynewstation --proceed 
 ```
-
+<br /><br />
 ## azuracast plugins
 
 This plugin was developed as part of the [azuracast-amiga](https://github.com/devloic/azuracast-amiga) work which 
