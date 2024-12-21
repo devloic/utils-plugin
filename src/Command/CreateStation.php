@@ -134,9 +134,7 @@ final class CreateStation extends CommandAbstract
         $name=$station->getName();
         $short_name=$station->getShortName();
    
-        $this->logger->error(
-            $short_name
-        );
+     
         //$data was copy/pasted from a log output  in StationsController->editRecord() 
         //(except $name value , $short_name field and value, and "has_started"=>true,)
         
