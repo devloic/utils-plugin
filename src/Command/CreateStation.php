@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Plugin\ExamplePlugin\Command;
+namespace Plugin\UtilsPlugin\Command;
 
 use App\Console\Command\CommandAbstract;
 use App\Container\EntityManagerAwareTrait;

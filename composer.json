@@ -1,16 +1,16 @@
 {
-    "name": "azuracast/example-plugin",
-    "description": "An example AzuraCast plugin, demonstrating the capabilities and common use-cases of the plugin system.",
+    "name": "devloic/utils-plugin",
+    "description": "A plugin for songdb, import and station creation",
     "type": "azuracast-plugin",
     "authors": [
         {
-            "name": "Buster Neece",
-            "email": "buster@busterneece.com"
+            "name": "Loic Devaux",
+            "email": "devloic@gmail.com"
         }
     ],
     "autoload": {
         "psr-4": {
-            "Plugin\\ExamplePlugin\\": "src"
+            "Plugin\\UtilsPlugin\\": "src"
         }
     }
 }
