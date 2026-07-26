@@ -1,0 +1,32 @@
+{
+    "build": "composer install inside /var/azuracast/www and inside /var/azuracast/www/plugins/utils-plugin; invoke via `azuracast_cli utils:import-media <dir> [--proceed]` or `azuracast_cli utils:create-station <name> [--proceed]`",
+    "current_state": "Recent commits added SQLite-backed song metadata enrichment (prod.db + SongdbReader); composer.lock currently shows uncommitted modifications on main branch",
+    "entrypoints": [
+        "events.php (registers console commands and event listeners)",
+        "services.php (DI services)",
+        "src/Command/CreateStation.php (utils:create-station)",
+        "src/Command/ImportMedia.php (utils:import-media)",
+        "src/EventHandler/Songdb/SongdbReader.php (ReadMetadata listener)"
+    ],
+    "notes": [
+        "Plugin targets AzuraCast and depends on its event system and StationPlaylistFolderRepository",
+        "prod.db (79MB) is committed in the repo — large binary asset",
+        "SongdbReader registered with priority -1 on Event\\Media\\ReadMetadata",
+        "Part of broader azuracast-amiga project integrating UADE music player"
+    ],
+    "purpose": "AzuraCast plugin providing CLI commands to bulk-create stations/playlists and import media from a directory tree, plus song metadata enrichment from a SongDB SQLite database (developed for the azuracast-amiga project to support 200+ Amiga music formats via UADE)",
+    "structure": [
+        "src/Command/ — console commands CreateStation and ImportMedia",
+        "src/Commons/ — shared Utils helper",
+        "src/EventHandler/Songdb/ — SongdbReader hooks into Media\\ReadMetadata to enrich metadata",
+        "vendor/ — Composer dependencies",
+        "prod.db — 79MB SQLite database of Amiga song metadata"
+    ],
+    "technologies": [
+        "PHP",
+        "Composer",
+        "AzuraCast plugin API",
+        "SQLite (prod.db)",
+        "PSR-4 autoloading"
+    ]
+}

@@ -20,7 +20,12 @@ return static function (CallableEventDispatcherInterface $dispatcher) {
     $dispatcher->addCallableListener(
         Event\Media\ReadMetadata::class,
         Plugin\UtilsPlugin\EventHandler\Songdb\SongdbReader::class,
-        priority: -1
+        // Must outrank PhpReader (priority 0). getID3 *recognises* Protracker/
+        // Noisetracker .mod files but reports no playtime, then calls
+        // stopPropagation() — which silently locked this reader out and left those
+        // modules at duration 0. FfprobeReader is at -10. songdb is authoritative
+        // for Amiga formats, so it goes first and stops propagation on a hit.
+        priority: 10
     );
   
 

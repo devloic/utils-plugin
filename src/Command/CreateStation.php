@@ -39,7 +39,7 @@ use App\Doctrine\ReloadableEntityManagerInterface;
 
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputOption;
-use Plugin\ExamplePlugin\Commons\Utils;
+use Plugin\UtilsPlugin\Commons\Utils;
 use App\Radio\Adapters;
 
 //wrapper class to remap protected editRecord method in order to make it public
@@ -66,7 +66,7 @@ class StationsController2 extends StationsController
             parent::__construct($stationRepo, $storageLocationRepo,$queueRepo,$configuration,$nginx,$serializer,$validator);
         }
 
-    public function editRecord(?array $data, object $record = null, array $context = []): object
+    public function editRecord(?array $data, ?object $record = null, array $context = []): object
 
     {
         return parent::editRecord($data,  $record ,  $context  );
@@ -129,10 +129,10 @@ final class CreateStation extends CommandAbstract
         $record=null;
 
         $name="$stationame";
-        $station->setName($name);
+        $station->name = $name;
 
-        $name=$station->getName();
-        $short_name=$station->getShortName();
+        $name = $station->name;
+        $short_name = $station->short_name;
    
      
         //$data was copy/pasted from a log output  in StationsController->editRecord() 
@@ -174,13 +174,13 @@ final class CreateStation extends CommandAbstract
 
        $stationController2->editRecord($data, $record ,  $context );
 
-       $station= $this->getStationByShortname($station->getShortName());
+       $station= $this->getStationByShortname($station->short_name);
 
        $this->runCommand(
         $this->output,
         'azuracast:radio:restart',
         [
-            'station-name' => $station->getShortName(),
+            'station-name' => $station->short_name,
             
         ]
     );

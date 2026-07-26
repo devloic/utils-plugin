@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Plugin\ExamplePlugin\Commons;
+namespace Plugin\UtilsPlugin\Commons;
 
 use App\Entity\Station;
 use App\Entity\Repository\StationRepository;
@@ -12,11 +12,11 @@ class Utils
 
 {
 
-    public static function getStationByShortname(String $shortname,StationRepository $stationRepo): ?Station
+    public static function getStationByShortname(string $shortname, StationRepository $stationRepo): ?Station
     {
-       $station = $stationRepo->getRepository(Station::class)->findOneBy(['short_name' => $shortname]);
-       
-      
-        return $station;
+        // AzuraCast 0.23.x: StationRepository exposes findByIdentifier(), which resolves
+        // either a numeric id or a short_name. The old getRepository(Station::class)
+        // passthrough no longer exists.
+        return $stationRepo->findByIdentifier($shortname);
     }
 }

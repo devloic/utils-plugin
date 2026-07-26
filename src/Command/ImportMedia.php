@@ -36,7 +36,7 @@ use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Finder\Finder;
 use Symfony\Component\Filesystem\Filesystem;
-use Plugin\ExamplePlugin\Commons\Utils;
+use Plugin\UtilsPlugin\Commons\Utils;
 
 #[AsCommand(
     name: 'utils:import-media',
@@ -76,10 +76,11 @@ final class ImportMedia extends CommandAbstract
     private function getPlaylistByName($station, $playlistname): ?StationPlaylist
     {
         $found = null;
-        $playlists = $station->getPlaylists();
-        $playlists = $playlists->toArray();
+        // 0.23.x: Station::$playlists is a public (private-set) Collection; getPlaylists() is gone.
+        $playlists = $station->playlists->toArray();
         foreach ($playlists as $playlist) {
-            if ($playlist->getShortName() == $playlistname) {
+            // 0.23.x: StationPlaylist no longer stores a short_name; it is derived on demand.
+            if (StationPlaylist::generateShortName($playlist->name) === $playlistname) {
                 $found = $playlist;
             }
         }
@@ -111,10 +112,12 @@ final class ImportMedia extends CommandAbstract
             }
 
 
-            $mediaStorage = $station->getMediaStorageLocation();
+            // 0.23.x: property hooks replace the getters.
+            $mediaStorage = $station->media_storage_location;
 
-            if ($mediaStorage->isLocal()) {
-                $mediaStoragePath = $mediaStorage->getPath();
+            // 0.23.x: isLocal() moved onto the StorageLocationAdapters enum.
+            if ($mediaStorage->adapter->isLocal()) {
+                $mediaStoragePath = $mediaStorage->path;
 
                 $all_playlists = array_merge($a_station["existing_valid_playlists"], $a_station["new_valid_playlists"]);
 
@@ -124,13 +127,17 @@ final class ImportMedia extends CommandAbstract
                     if (!$playlist["exists"]) {
                         //create the playlist if it's new
                         $current_playlist_obj = new StationPlaylist($station);
-                        $current_playlist_obj->setName($playlist["shortname"]);
+                        $current_playlist_obj->name = $playlist["shortname"];
                         $this->em->persist($current_playlist_obj);
                         $this->em->flush();
                     }
 
                     //make it "assigned to the directory"
-                    $this->spfRepo->addPlaylistsToFolder($station, $folder_path, array($current_playlist_obj->getId() => 3));
+                    $this->spfRepo->addPlaylistsToFolder(
+                        $station,
+                        $folder_path,
+                        [$current_playlist_obj->id => StationPlaylist::DEFAULT_WEIGHT]
+                    );
 
                     try {
 
@@ -152,7 +159,17 @@ final class ImportMedia extends CommandAbstract
                             if ($stationMedia instanceof StationMedia) {
                                 // If the user is viewing a regular directory, check for playlists assigned to the directory and assign
                                 // them to this media immediately.
-                                $playlistIds = $this->spfRepo->getPlaylistIdsForFolderAndParents($a_station["station"], $playlist["shortname"]);
+                                // 0.23.x: getPlaylistIdsForFolderAndParents() is gone. The public
+                                // replacement returns StationPlaylistFolder entities; ask for
+                                // parents too and read playlist_id off each.
+                                $playlistIds = array_map(
+                                    static fn($folder) => $folder->playlist_id,
+                                    $this->spfRepo->getPlaylistFoldersForPath(
+                                        $station,
+                                        $playlist["shortname"],
+                                        true
+                                    )
+                                );
                                 if (!empty($playlistIds)) {
                                     foreach ($playlistIds as $playlistId) {
                                         $xplaylist = $this->em->find(StationPlaylist::class, $playlistId);
@@ -225,7 +242,10 @@ final class ImportMedia extends CommandAbstract
         if (!$filesystem->exists($mediapath)) {
             $plan["error"][] = array("msg" => "'" . $mediapath . "'" . " : No such file or directory", "fatal" => true);
             $plan["fatal"] = true;
-            return $plan;
+            // Must match the shape of the success path below: execute() destructures
+            // this as [$plan, $rows]. Returning $plan alone left $rows null, which
+            // SymfonyStyle::table() rejects outright on current Symfony.
+            return array($plan, array());
         }
 
         $finder = new Finder();
@@ -248,7 +268,7 @@ final class ImportMedia extends CommandAbstract
             $station_hasplaylists = false;
             $station_hasfiles = false;
             $finder2->directories()->depth('== 0')->in($absoluteFilePath);
-            $plan["stations"][$dirname] = array("name" => $station === null ?  $dirname : $station->getName(), "shortname" => $dirname, "hasfiles" => $station_hasfiles, "hasplaylists" => $station_hasplaylists, "exists" => $station === null ? false : true, "path" => $absoluteFilePath, "station" => $station, "playlists" => array());
+            $plan["stations"][$dirname] = array("name" => $station === null ? $dirname : $station->name, "shortname" => $dirname, "hasfiles" => $station_hasfiles, "hasplaylists" => $station_hasplaylists, "exists" => $station === null ? false : true, "path" => $absoluteFilePath, "station" => $station, "playlists" => array());
             //loop on playlists (directories)
             foreach ($finder2 as $dir2) {
                 $mediapath_hasplaylists = true;
@@ -405,14 +425,14 @@ final class ImportMedia extends CommandAbstract
                         $new_valid_playlists = $new_valid_playlists . $playlist["shortname"] . "/" . $playlist["shortname"] . " (" . sizeof($playlist["files"]) . ") ";
                         $stations[$key]["new_valid_playlists"][] = $playlist;
                     } else {
-                        $existing_valid_playlists = $existing_valid_playlists . $playlist["playlist"]->getName() . "/" . $playlist["shortname"] . " (" . sizeof($playlist["files"]) . ") ";
+                        $existing_valid_playlists = $existing_valid_playlists . $playlist["playlist"]->name . "/" . $playlist["shortname"] . " (" . sizeof($playlist["files"]) . ") ";
                         $stations[$key]["existing_valid_playlists"][] = $playlist;
                     }
                 } else {
                     if ($playlist["exists"] == false) {
                         $playlists_to_ignore = $playlists_to_ignore . $playlist["shortname"] . "/" . $playlist["shortname"] . " ";
                     } else {
-                        $playlists_to_ignore = $playlists_to_ignore . $playlist["playlist"]->getName() . "/" . $playlist["shortname"] . " ";
+                        $playlists_to_ignore = $playlists_to_ignore . $playlist["playlist"]->name . "/" . $playlist["shortname"] . " ";
                     }
                     $stations[$key]["playlists_to_ignore"][] = $playlist;
                 }
