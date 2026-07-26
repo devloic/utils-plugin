@@ -47,6 +47,10 @@ final readonly class PlayUadeAction implements SingleActionInterface
     private const int DECODE_TIMEOUT = 600;
     private const int SILENCE_TIMEOUT = 5;
     private const string BITRATE = '128k';
+    /** Seconds of decode used to test whether uade123 accepts a file. */
+    private const int PROBE_SECONDS = 2;
+    /** A refusal writes only a ~68-byte WAV header; real audio is far larger. */
+    private const int MIN_AUDIO_BYTES = 4096;
 
     public function __construct(
         private StationMediaRepository $mediaRepo,
@@ -91,6 +95,32 @@ final readonly class PlayUadeAction implements SingleActionInterface
         return $fsMedia->withLocalFile(
             $media->path,
             function (string $localPath) use ($response, $media): ResponseInterface {
+                // UADE's format table is broader than what its replayers accept, so
+                // songdb recognising a file does not guarantee uade123 can play it.
+                // crystalhammer.mod is the case in point: "module check failed", a
+                // 68-byte WAV header, exit 1 — while ffmpeg (built with libopenmpt)
+                // decodes it fine.
+                //
+                // Piping uade123 straight into ffmpeg would hand ffmpeg that broken
+                // header and emit a stub MP3 the browser cannot play, so probe with a
+                // couple of seconds of decode first and hand the file to ffmpeg alone
+                // when uade123 declines it.
+                if (!$this->uadeCanDecode($localPath)) {
+                    $this->logger->debug(
+                        'uade123 declined this file; decoding with ffmpeg/libopenmpt instead.',
+                        ['path' => $media->path]
+                    );
+                    return $this->stream(
+                        sprintf(
+                            'ffmpeg -hide_banner -loglevel error -i %s -f mp3 -b:a %s - 2>/dev/null',
+                            escapeshellarg($localPath),
+                            self::BITRATE
+                        ),
+                        $response,
+                        $media->path
+                    );
+                }
+
                 $cmd = sprintf(
                     'uade123 --stderr -e wav -t %d -y %d -f - %s 2>/dev/null '
                     . '| ffmpeg -hide_banner -loglevel error -i - -f mp3 -b:a %s - 2>/dev/null',
@@ -100,25 +130,64 @@ final readonly class PlayUadeAction implements SingleActionInterface
                     self::BITRATE
                 );
 
-                $handle = popen($cmd, 'rb');
-                if (false === $handle) {
-                    $this->logger->error(
-                        'Could not start uade123/ffmpeg for preview.',
-                        ['path' => $media->path]
-                    );
-                    return $response->withStatus(500);
-                }
-
-                // withFile() is the same helper streamFilesystemFile() uses and takes
-                // a resource directly. Do NOT reach for Slim\Psr7\Stream: AzuraCast
-                // ships slim/http over guzzlehttp/psr7, so that class is absent.
-                //
-                // No Content-Length: the length is unknown until the decode finishes,
-                // so this is a progressive stream and the browser cannot seek it.
-                return $response
-                    ->withFile($handle, 'audio/mpeg')
-                    ->withHeader('Cache-Control', 'no-store');
+                return $this->stream($cmd, $response, $media->path);
             }
         );
+    }
+
+    /**
+     * Can uade123 actually replay this file?
+     *
+     * songdb recognising it is not sufficient: UADE's format table lists more
+     * extensions than its replayers accept. A couple of seconds of decode is enough
+     * to tell — a refusal writes only a WAV header and exits non-zero.
+     */
+    private function uadeCanDecode(string $localPath): bool
+    {
+        $probe = tempnam(sys_get_temp_dir(), 'uadeprobe');
+        if (false === $probe) {
+            return false;
+        }
+
+        try {
+            exec(
+                sprintf(
+                    'uade123 --stderr -e wav -t %d -y 1 -f %s %s >/dev/null 2>&1',
+                    self::PROBE_SECONDS,
+                    escapeshellarg($probe),
+                    escapeshellarg($localPath)
+                ),
+                $out,
+                $code
+            );
+
+            clearstatcache(true, $probe);
+            $size = @filesize($probe) ?: 0;
+
+            // Both conditions: uade123 does return 1 on refusal, and the size check
+            // stops a zero-exit-but-empty decode being mistaken for success.
+            return 0 === $code && $size > self::MIN_AUDIO_BYTES;
+        } finally {
+            @unlink($probe);
+        }
+    }
+
+    private function stream(string $cmd, Response $response, string $path): ResponseInterface
+    {
+        $handle = popen($cmd, 'rb');
+        if (false === $handle) {
+            $this->logger->error('Could not start the decoder for preview.', ['path' => $path]);
+            return $response->withStatus(500);
+        }
+
+        // withFile() is the same helper streamFilesystemFile() uses and takes a
+        // resource directly. Do NOT reach for Slim\Psr7\Stream: AzuraCast ships
+        // slim/http over guzzlehttp/psr7, so that class is absent.
+        //
+        // No Content-Length: the length is unknown until the decode finishes, so
+        // this is a progressive stream and the browser cannot seek it.
+        return $response
+            ->withFile($handle, 'audio/mpeg')
+            ->withHeader('Cache-Control', 'no-store');
     }
 }
